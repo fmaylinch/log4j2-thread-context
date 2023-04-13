@@ -10,13 +10,13 @@ import org.apache.logging.log4j.Logger;
  * Package e.g. with:
  * mvn clean package
  *
- * Then check that custom appender doesn't work with the "shade" jar:
+ * Then check that custom appender works (run the app and see that the generated log file contains some logs):
  * java -cp target/log4j-test-1.0-SNAPSHOT.jar org.example.Main
  *
- * But works with the original jars:
+ * Note that the hacks in the pom.xml file are not needed if you just use separate jars:
  * java -cp "target/original-log4j-test-1.0-SNAPSHOT.jar:$HOME/.m2/repository/org/apache/logging/log4j/log4j-core/2.17.2/log4j-core-2.17.2.jar:$HOME/.m2/repository/org/apache/logging/log4j/log4j-api/2.17.2/log4j-api-2.17.2.jar" org.example.Main
  *
- * You will see that the generated log file (`logId`.log) is empty shen using the shade jar.
+ * Note: you can run `java -Dlog4j.debug=true -cp ...` for more info.
  */
 public class Main {
 
@@ -31,6 +31,7 @@ public class Main {
 
         log.info("This log should NOT be included");
         logHandler.runWithThreadContext(() -> {
+            // These are the logs that should be included in the log file
             log.info("OK - This log should be INCLUDED");
             log.info("OK - This log also should be INCLUDED");
         });

@@ -15,6 +15,14 @@
     </properties>
 
     <dependencies>
+
+        <!-- Added just because it contains a wrong Log4j2Plugins.dat, problem fixed below -->
+        <dependency>
+            <groupId>io.github.technologize</groupId>
+            <artifactId>fluentd-log4j-appender</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
@@ -33,7 +41,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.4.0</version>
+                <version>3.4.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -42,6 +50,71 @@
                         </goals>
                     </execution>
                 </executions>
+                <dependencies>
+                    <!--
+                    TODO: these dependencies are not used, but they are alternative fixes, see transformers below
+                    <dependency>
+                        <groupId>com.github.marcosemiao.maven.plugins.shade.resource</groupId>
+                        <artifactId>maven-shade-merge-manifest-transformer</artifactId>
+                        <version>0.0.3</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>io.github.edwgiz</groupId>
+                        <artifactId>log4j-maven-shade-plugin-extensions</artifactId>
+                        <version>2.17.2</version>
+                    </dependency>
+                    -->
+                </dependencies>
+                <configuration>
+
+                    <filters>
+                        <!-- Ignore these files, we will write the right one later -->
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>**/Log4j2Plugins.dat</exclude>
+                            </excludes>
+                        </filter>
+
+                    </filters>
+
+                    <transformers>
+
+                        <!--
+                          Writes correct Log4j2Plugins.dat file, in case we end up with a wrong one.
+                          https://github.com/edwgiz/maven-shaded-log4j-transformer
+                        <transformer implementation="io.github.edwgiz.log4j.maven.plugins.shade.transformer.Log4j2PluginCacheFileTransformer">
+                        </transformer>
+                        -->
+                        <!--
+                          The following standard transformer works too. I just made a copy of the file from log4j2-core.
+                        -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                            <resource>META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat</resource>
+                            <file>Log4j2Plugins-2.17.2.dat</file>
+                        </transformer>
+
+                        <!--
+                          Merges entries from MANIFEST.MF files. But it seems that log4j just needs the Multi-Release entry, see below.
+                          https://github.com/marcosemiao/maven-shade-merge-manifest-transformer
+                        <transformer implementation="fr.ms.maven.shade.transformers.MergeManifestResourceTransformer">
+                            <manifestEntries>
+                                <Main-Class>org.example.Main</Main-Class>
+                            </manifestEntries>
+                        </transformer>
+                        -->
+
+                        <!-- I found that by setting Multi-Release, my appender works fine -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>org.example.Main</mainClass>
+                            <manifestEntries>
+                                <Multi-Release>true</Multi-Release>
+                            </manifestEntries>
+                        </transformer>
+
+                    </transformers>
+
+                </configuration>
             </plugin>
         </plugins>
     </build>
