@@ -12,6 +12,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <log4j2.version>2.17.2</log4j2.version>
     </properties>
 
     <dependencies>
@@ -26,7 +27,7 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.17.2</version>
+            <version>${log4j2.version}</version>
         </dependency>
     </dependencies>
 
@@ -81,17 +82,23 @@
                     <transformers>
 
                         <!--
-                          Writes correct Log4j2Plugins.dat file, in case we end up with a wrong one.
+                          Writes the correct Log4j2Plugins.dat file.
                           https://github.com/edwgiz/maven-shaded-log4j-transformer
                         <transformer implementation="io.github.edwgiz.log4j.maven.plugins.shade.transformer.Log4j2PluginCacheFileTransformer">
                         </transformer>
                         -->
                         <!--
                           The following standard transformer works too. I just made a copy of the file from log4j2-core.
+                          You can get that file with these commands:
+
+                            log4j2_version=2.17.2
+                            rm src/main/resources/Log4j2Plugins-*.dat
+                            unzip -j $HOME/.m2/repository/org/apache/logging/log4j/log4j-core/${log4j2_version}/log4j-core-${log4j2_version}.jar META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat -d src/main/resources
+                            mv src/main/resources/Log4j2Plugins.dat src/main/resources/Log4j2Plugins-${log4j2_version}.dat
                         -->
                         <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
                             <resource>META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat</resource>
-                            <file>Log4j2Plugins-2.17.2.dat</file>
+                            <file>src/main/resources/Log4j2Plugins-${log4j2.version}.dat</file>
                         </transformer>
 
                         <!--
